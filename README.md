@@ -99,10 +99,10 @@ For a quick training smoke run:
 python3 phishing_detection/train_model.py --sample-per-class 1000 --max-text-features 5000
 ```
 
-Latest full training result on the included dataset:
+Latest full training result on the included augmented dataset:
 
 ```text
-Accuracy: 0.9594
+Accuracy: 0.9691
 ```
 
 ## 3. Predict One URL
@@ -121,4 +121,3 @@ Open http://localhost:5000 in your browser.
 
 
 This project presents a Machine Learning-based approach for phishing URL detection by extracting relevant features from URLs and classifying them as legitimate or malicious. The results demonstrate that machine learning techniques can effectively identify phishing attempts and contribute to improving web security. This project was developed for educational purposes in collaboration with my friend, allowing us to strengthen our knowledge of cybersecurity, machine learning, and software development through practical, hands-on experience. We hope this project serves as a valuable learning resource .
-

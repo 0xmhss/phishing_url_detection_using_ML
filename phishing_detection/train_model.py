@@ -56,7 +56,13 @@ FEATURE_COLUMNS = [
 ]
 
 
-def build_model(max_text_features, min_tld_frequency, alpha, random_state):
+def build_model(
+    max_text_features,
+    min_tld_frequency,
+    alpha,
+    random_state,
+    class_weight=None,
+):
     numeric_features = [
         "url_length",
         "domain_length",
@@ -124,7 +130,7 @@ def build_model(max_text_features, min_tld_frequency, alpha, random_state):
         max_iter=1000,
         tol=1e-3,
         random_state=random_state,
-        class_weight="balanced",
+        class_weight=class_weight,
     )
 
     return Pipeline(
@@ -225,8 +231,14 @@ def main():
     parser.add_argument(
         "--alpha",
         type=float,
-        default=0.00001,
+        default=0.000003,
         help="Regularization strength for the SGD classifier.",
+    )
+    parser.add_argument(
+        "--class-weight",
+        choices=["none", "balanced"],
+        default="none",
+        help="Class weighting strategy for the SGD classifier.",
     )
     parser.add_argument(
         "--random-state",
@@ -259,6 +271,7 @@ def main():
         min_tld_frequency=args.min_tld_frequency,
         alpha=args.alpha,
         random_state=args.random_state,
+        class_weight=None if args.class_weight == "none" else args.class_weight,
     )
     model.fit(X_train, y_train)
 

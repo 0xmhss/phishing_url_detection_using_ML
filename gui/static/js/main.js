@@ -1,5 +1,5 @@
 /**
- * PhishGuard — frontend logic
+ * PhishGuard - frontend logic
  *
  * Handles:
  *  - Tab / panel navigation
@@ -8,11 +8,11 @@
  *  - Feature grid and warning list rendering
  */
 
-/* ── State ─────────────────────────────────────────────────────────────────── */
+/* State */
 
 const scanHistory = [];   // { url, prediction, score, time }
 
-/* ── Navigation ────────────────────────────────────────────────────────────── */
+/* Navigation */
 
 document.querySelectorAll(".nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -28,14 +28,14 @@ document.querySelectorAll(".nav-item").forEach(btn => {
   });
 });
 
-/* ── Sample URLs ────────────────────────────────────────────────────────────── */
+/* Sample URLs */
 
 function loadSample(url) {
   document.getElementById("urlInput").value = url;
   document.getElementById("urlInput").focus();
 }
 
-/* ── Scan ───────────────────────────────────────────────────────────────────── */
+/* Scan */
 
 document.getElementById("urlInput").addEventListener("keydown", e => {
   if (e.key === "Enter") scanURL();
@@ -52,6 +52,7 @@ async function scanURL() {
 
   // Show result area immediately with loading state
   const resultArea = document.getElementById("resultArea");
+  document.getElementById("panel-scan").classList.add("has-result");
   resultArea.style.display = "block";
   setVerdictLoading();
 
@@ -90,7 +91,7 @@ async function scanURL() {
   }
 }
 
-/* ── Verdict states ──────────────────────────────────────────────────────────── */
+/* Verdict states */
 
 function setVerdictLoading() {
   const banner = document.getElementById("verdictBanner");
@@ -99,7 +100,7 @@ function setVerdictLoading() {
   document.getElementById("verdictIcon").className = "verdict-icon";
   setSvgIcon("verdictSvg", "loader");
 
-  document.getElementById("verdictTitle").textContent = "Analyzing URL…";
+  document.getElementById("verdictTitle").textContent = "Analyzing URL...";
   document.getElementById("verdictSub").textContent   = "Extracting features and running the model";
   document.getElementById("modeBadge").textContent    = "";
 
@@ -107,7 +108,7 @@ function setVerdictLoading() {
   document.getElementById("warningsList").innerHTML = "";
   animateConfidence(50, 50);
   animateNeedle(50);
-  document.getElementById("riskScoreVal").textContent = "—";
+  document.getElementById("riskScoreVal").textContent = "-";
 }
 
 function setVerdictError(msg) {
@@ -134,11 +135,11 @@ function renderResult(data) {
   setSvgIcon("verdictSvg", isPhishing ? "alert-triangle" : "shield-check");
 
   document.getElementById("verdictTitle").textContent =
-    isPhishing ? "Warning: Phishing URL Detected!" : "URL Appears Safe";
+    isPhishing ? "Likely phishing URL" : "URL appears safe";
   document.getElementById("verdictSub").textContent =
     isPhishing
-      ? "This URL shows strong phishing indicators — do not click or share it."
-      : "No significant phishing indicators were found in this URL.";
+      ? "The link has enough risk signals to avoid opening it."
+      : "The model did not find strong phishing indicators.";
   document.getElementById("modeBadge").textContent = modeLabel;
 
   // Confidence bars + needle
@@ -153,9 +154,9 @@ function renderResult(data) {
   renderWarnings(data.warnings);
 }
 
-/* ── Feature grid ────────────────────────────────────────────────────────────── */
+/* Feature grid */
 
-// Map feature names → human labels and thresholds
+// Map feature names to human labels and thresholds.
 const FEATURE_META = {
   url_length:           { label: "URL Length",        bad: v => v > 100, warn: v => v > 75 },
   domain_length:        { label: "Domain Len",        bad: () => false,  warn: () => false },
@@ -204,7 +205,7 @@ function renderFeatures(features) {
   });
 }
 
-/* ── Warnings ─────────────────────────────────────────────────────────────── */
+/* Warnings */
 
 function renderWarnings(warnings) {
   const list = document.getElementById("warningsList");
@@ -224,7 +225,7 @@ function renderWarnings(warnings) {
     </div>`).join("");
 }
 
-/* ── Animations ─────────────────────────────────────────────────────────────── */
+/* Animations */
 
 function animateConfidence(safePct, dangerPct) {
   document.getElementById("confSafe").style.width    = safePct + "%";
@@ -237,7 +238,7 @@ function animateNeedle(pct) {
   document.getElementById("riskNeedle").style.left = Math.min(Math.max(pct, 2), 98) + "%";
 }
 
-/* ── History ─────────────────────────────────────────────────────────────────── */
+/* History */
 
 function updateHistoryBadge() {
   const badge = document.getElementById("historyCount");
@@ -266,10 +267,10 @@ function renderHistory() {
 
   const safe    = scanHistory.filter(h => h.prediction === "safe").length;
   const phishing = scanHistory.length - safe;
-  meta.textContent = `${scanHistory.length} scans — ${safe} safe, ${phishing} phishing`;
+  meta.textContent = `${scanHistory.length} scans | ${safe} safe, ${phishing} phishing`;
 
   list.innerHTML = scanHistory.map(h => `
-    <div class="hist-row" onclick="reloadScan('${escapeHtml(h.url)}')">
+    <div class="hist-row" data-url="${escapeHtml(h.url)}">
       <span class="hist-badge ${h.prediction === "safe" ? "safe-badge" : "danger-badge"}">
         ${h.prediction}
       </span>
@@ -277,6 +278,10 @@ function renderHistory() {
       <span class="hist-score">Risk: ${h.score}%</span>
       <span class="hist-time">${h.time}</span>
     </div>`).join("");
+
+  list.querySelectorAll(".hist-row").forEach(row => {
+    row.addEventListener("click", () => reloadScan(row.dataset.url));
+  });
 }
 
 function reloadScan(url) {
@@ -297,7 +302,7 @@ function clearHistory() {
   renderHistory();
 }
 
-/* ── SVG icon helpers ────────────────────────────────────────────────────────── */
+/* SVG icon helpers */
 
 const SVG_PATHS = {
   "loader":          '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
@@ -318,12 +323,13 @@ function svgWarn() {
   return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
 }
 
-/* ── Utility ─────────────────────────────────────────────────────────────────── */
+/* Utility */
 
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
