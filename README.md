@@ -1,10 +1,12 @@
 # Phishing URL Detection using Machine Learning
 
 <p align="center">
-  <img src="images/home_page.png" width="100%">
+  <strong>SafeLink scan dashboard</strong><br>
+  <img src="images/home_page.png" alt="SafeLink URL risk scanner dashboard" width="100%">
 </p>
 <p align="center">
-  <img src="images/history_page.png" width="100%">
+  <strong>Scan history</strong><br>
+  <img src="images/history_page.png" alt="SafeLink scan history page" width="100%">
 </p>
 
 
@@ -105,10 +107,12 @@ Latest full training result on the included augmented dataset:
 Accuracy: 0.9691
 ```
 
-## 3. Predict One URL
+## 3. Run the Web Scanner
 
 Run training first if `phishing_detection/models/phishing_url_model.joblib` does
-not exist.
+not exist. The Flask GUI opens the SafeLink dashboard, where you can scan a URL,
+review the model confidence, inspect extracted URL features, and check the
+current browser-session history.
 
 ```bash
 python gui/app.py
