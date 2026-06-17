@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.agents/
+.codex/
+
+# Generated artifacts
+phishing_detection/data_set/extracted_features.csv
+phishing_detection/models/

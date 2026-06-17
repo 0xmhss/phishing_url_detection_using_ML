@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeLink - Phishing URL Detector</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+    <span class="logo-text">SafeLink</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-panel="scan">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <span>Scan URL</span>
+    </button>
+    <button class="nav-item" data-panel="history">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="3 3 3 7 7 7"/></svg>
+      <span>History</span>
+      <span class="nav-badge" id="historyCount" style="display:none">0</span>
+    </button>
+    <button class="nav-item" data-panel="aboutus">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>About Us</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-status">
+    <div class="status-indicator {% if model_ready %}ready{% else %}heuristic{% endif %}"></div>
+    <span>{% if model_ready %}ML Model Active{% else %}Heuristic Mode{% endif %}</span>
+  </div>
+</aside>
+
+<!-- ── Main content ─────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- SCAN PANEL -->
+  <section id="panel-scan" class="panel active">
+    <div class="panel-header">
+      <h1>URL Scanner</h1>
+      <p class="panel-sub">Analyze any URL for phishing indicators using machine learning</p>
+    </div>
+
+    <!-- Input card -->
+    <div class="card input-card">
+      <label class="field-label" for="urlInput">Enter URL to scan</label>
+      <div class="url-row">
+        <input
+          type="text"
+          id="urlInput"
+          class="url-input"
+          placeholder="https://example.com/login"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="btn-scan" id="scanBtn" onclick="scanURL()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          Scan
+        </button>
+      </div>
+      <div class="sample-row">
+        <span class="sample-label">Quick test:</span>
+        <button class="sample-btn danger-sample" onclick="loadSample('http://secure-login.paypa1.com/verify/account?token=abc123&redirect=bank')">Phishing example</button>
+        <button class="sample-btn safe-sample" onclick="loadSample('https://www.google.com')">Safe example</button>
+        <button class="sample-btn danger-sample" onclick="loadSample('http://192.168.1.1/admin/login?user=admin&password=1234')">IP-based phishing</button>
+      </div>
+    </div>
+
+    <!-- Result area (hidden until scan) -->
+    <div id="resultArea" class="result-area" style="display:none">
+
+      <!-- Verdict banner -->
+      <div class="verdict-banner" id="verdictBanner">
+        <div class="verdict-icon" id="verdictIcon">
+          <svg id="verdictSvg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+        </div>
+        <div class="verdict-body">
+          <h2 id="verdictTitle">Analyzing...</h2>
+          <p id="verdictSub">Extracting features and running model</p>
+        </div>
+        <div class="verdict-meta">
+          <span class="mode-badge" id="modeBadge"></span>
+        </div>
+      </div>
+
+      <!-- Confidence + Risk meter -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Confidence</div>
+          <div class="conf-row">
+            <span class="conf-label safe-text">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Safe
+            </span>
+            <div class="conf-track"><div class="conf-fill safe-fill" id="confSafe" style="width:50%"></div></div>
+            <span class="conf-pct" id="confSafeVal">50%</span>
+          </div>
+          <div class="conf-row" style="margin-top:10px">
+            <span class="conf-label danger-text">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Phishing
+            </span>
+            <div class="conf-track"><div class="conf-fill danger-fill" id="confDanger" style="width:50%"></div></div>
+            <span class="conf-pct" id="confDangerVal">50%</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Risk Meter</div>
+          <div class="risk-meter">
+            <div class="risk-track">
+              <div class="risk-needle" id="riskNeedle" style="left:50%"></div>
+            </div>
+            <div class="risk-labels">
+              <span class="safe-text">Low</span>
+              <span>Medium</span>
+              <span class="danger-text">High</span>
+            </div>
+          </div>
+          <div style="text-align:center; margin-top:12px">
+            <span class="risk-score-label">Risk Score</span>
+            <span class="risk-score-val" id="riskScoreVal">—</span>
+            <span class="risk-score-label">/ 100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extracted features grid -->
+      <div class="card">
+        <div class="card-title">Extracted Features</div>
+        <div class="features-grid" id="featuresGrid"></div>
+      </div>
+
+      <!-- Warnings -->
+      <div class="card" id="warningsCard">
+        <div class="card-title">Security Indicators</div>
+        <div id="warningsList"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- HISTORY PANEL -->
+  <section id="panel-history" class="panel">
+    <div class="panel-header">
+      <h1>Scan History</h1>
+      <p class="panel-sub">Your recent URL scans in this session</p>
+    </div>
+    <div class="card">
+      <div class="history-toolbar">
+        <span id="historyMeta" class="field-label">No scans yet</span>
+        <button class="btn-ghost" onclick="clearHistory()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Clear
+        </button>
+      </div>
+      <div id="historyList">
+        <div class="empty-state">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/></svg>
+          <p>No scans yet. Go to Scan URL to get started.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT US PANEL -->
+  <section id="panel-aboutus" class="panel">
+    <div class="panel-header">
+      <h1>About Us</h1>
+      <p class="panel-sub">The team behind SafeLink</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card team-card">
+        <div class="avatar avatar-1">YG</div>
+        <h3 class="team-name">Yassir Guendouz</h3>
+        <div class="team-role">Cybersecurity Student</div>
+        <p class="team-bio">
+          Computer science student specializing in networking and security, with a strong interest in web development,
+          system administration, and practical cybersecurity. I enjoy building useful projects, improving
+          my technical skills through hands-on work, and exploring real-world IT challenges with a structured and professional 
+          approach.
+        </p>
+        <div class="team-meta">
+          <div class="meta-row"><span class="meta-label">University</span><span class="meta-val">Higher School of Technology</span></div>
+          <div class="meta-row"><span class="meta-label">Specialization</span><span class="meta-val">Network Security</span></div>
+          <div class="meta-row"><span class="meta-label">Email</span><span class="meta-val">guendouzyassir37@gmail.com</span></div>
+        </div>
+        <div class="team-tags">
+          <span class="tag">Python</span>
+          <span class="tag">Machine Learning</span>
+          <span class="tag">Web Development</span>
+        </div>
+      </div>
+
+      <div class="card team-card">
+        <div class="avatar avatar-2">MS</div>
+        <h3 class="team-name">Mohamed Soussi</h3>
+        <div class="team-role">Cybersecurity Student</div>
+        <p class="team-bio">
+          Cybersecurity student with a strong foundation in low-level programming, computer networking, machine learning,
+          web development, and data structures & algorithms. Passionate about 
+          technology and committed to continuous self-improvement through building real-world projects and solving practical problems.
+        </p>
+        <div class="team-meta">
+          <div class="meta-row"><span class="meta-label">University</span><span class="meta-val">Higher School of Technology</span></div>
+          <div class="meta-row"><span class="meta-label">Specialization</span><span class="meta-val">Network Security</span></div>
+          <div class="meta-row"><span class="meta-label">Email</span><span class="meta-val">mohamed.soussi.f7@gmail.com</span></div>
+        </div>
+        <div class="team-tags">
+          <span class="tag">low-level programming</span>
+          <span class="tag">data structures & algorithms</span>
+          <span class="tag">Network Security</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Project</div>
+      <p style="font-size:14px; color:var(--text-2); line-height:1.7;">
+        SafeLink was developed as part of our Cybersecurity coursework to
+        demonstrate how machine learning can be applied to detect phishing
+        URLs in real time. The project combines URL feature engineering,
+        a trained classification model, and a web-based interface so the
+        detector can be tested interactively rather than only from the
+        command line.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
