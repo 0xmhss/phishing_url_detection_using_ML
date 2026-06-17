@@ -1,7 +1,12 @@
 # Phishing URL Detection using Machine Learning
 
-![Home page](images/home_page.png)
-![History page](images/history_page.png)
+<p align="center">
+  <img src="images/home_page.png" width="100%">
+</p>
+<p align="center">
+  <img src="images/history_page.png" width="100%">
+</p>
+
 
 The Internet has become an essential part of modern life, but it has also created opportunities for cybercriminals to conduct phishing attacks. Phishing websites are designed to deceive users and steal sensitive information such as usernames, passwords, and account credentials. As attackers continuously evolve their techniques, traditional detection methods often struggle to keep pace. Machine Learning offers an effective solution by identifying patterns and characteristics commonly associated with phishing URLs. This project implements a Machine Learning-based phishing URL detection system to accurately classify URLs as legitimate or malicious. The goal is to enhance web security and provide safer browsing experiences.
 
