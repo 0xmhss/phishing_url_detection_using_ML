@@ -110,7 +110,7 @@ python gui/app.py
 ```
 Open http://localhost:5000 in your browser.
 
-```
+
 
 ## 4. Conclusion
 
