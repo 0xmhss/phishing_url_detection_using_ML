@@ -430,54 +430,6 @@ body {
   cursor: not-allowed;
 }
 
-.sample-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.sample-label {
-  color: var(--text-3);
-  font-size: 12px;
-}
-
-.sample-btn {
-  min-height: 28px;
-  padding: 5px 10px;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 650;
-  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
-}
-
-.sample-btn:hover {
-  background: var(--surface-subtle);
-  color: var(--text-1);
-}
-
-.safe-sample {
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-.safe-sample:hover {
-  background: var(--accent-soft);
-}
-
-.danger-sample {
-  border-color: var(--danger-border);
-  color: var(--danger);
-}
-
-.danger-sample:hover {
-  background: var(--danger-soft);
-}
-
 .result-area {
   width: 100%;
   animation: fadeIn 0.2s ease;
