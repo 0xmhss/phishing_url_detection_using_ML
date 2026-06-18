@@ -28,12 +28,6 @@ document.querySelectorAll(".nav-item").forEach(btn => {
   });
 });
 
-/* Sample URLs */
-
-function loadSample(url) {
-  document.getElementById("urlInput").value = url;
-  document.getElementById("urlInput").focus();
-}
 
 /* Scan */
 
